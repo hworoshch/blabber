@@ -1,5 +1,5 @@
 defmodule Blabber.Distilbert do
-  @moduledoc "Handles text sentiment using a Hugging Face model."
+  @moduledoc "Handles text sentiment classification using a Hugging Face model."
 
   use GenServer
   @behaviour Blabber.ChatCompletion

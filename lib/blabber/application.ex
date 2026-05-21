@@ -8,15 +8,15 @@ defmodule Blabber.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      {Blabber.FlanT5, []},
       {Blabber.Distilbert, []},
       BlabberWeb.Telemetry,
       Blabber.Repo,
       {DNSCluster, query: Application.get_env(:blabber, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: Blabber.PubSub}
+      {Phoenix.PubSub, name: Blabber.PubSub},
       # Start a worker by calling: Blabber.Worker.start_link(arg)
       # {Blabber.Worker, arg},
       # Start to serve requests, typically the last entry
+      BlabberWeb.Endpoint
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
