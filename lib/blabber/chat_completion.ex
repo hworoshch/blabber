@@ -11,11 +11,13 @@ defmodule Blabber.ChatCompletion do
 
   @default_engine Blabber.Stub
 
+  @spec call(any(), keyword()) :: term()
   def call(request, opts \\ []) do
     {engine, opts} = Keyword.pop(opts, :engine, @default_engine)
     engine.call(request, opts)
   end
 
+  @spec to_string(term(), keyword()) :: String.t()
   def to_string(outcome, opts \\ []) do
     {engine, _opts} = Keyword.pop(opts, :engine, @default_engine)
 

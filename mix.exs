@@ -11,7 +11,16 @@ defmodule Blabber.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      docs: [
+        main: "Blabber",
+        extras: ["README.md"],
+        groups_for_modules: [
+          "Core Logic": [Blabber, Blabber.ChatCompletion],
+          "Engines & AI": [Blabber.Distilbert, Blabber.Stub],
+          "Web Interface": [BlabberWeb, BlabberWeb.ChatLive]
+        ]
+      ]
     ]
   end
 
@@ -69,7 +78,10 @@ defmodule Blabber.MixProject do
       {:nx, "~> 0.9"},
       {:exla, "~> 0.12"},
       {:bumblebee, "~> 0.7.0"},
-      {:kino, "~> 0.14"}
+      {:kino, "~> 0.14"},
+      {:credo, "~> 1.7", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.40", only: [:dev], runtime: false}
     ]
   end
 

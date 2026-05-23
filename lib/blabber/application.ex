@@ -6,6 +6,8 @@ defmodule Blabber.Application do
   use Application
 
   @impl true
+  @spec start(Application.start_type(), any()) ::
+          {:ok, pid()} | {:ok, pid(), any()} | {:error, any()}
   def start(_type, _args) do
     children = [
       {Blabber.Distilbert, []},
@@ -28,6 +30,7 @@ defmodule Blabber.Application do
   # Tell Phoenix to update the endpoint configuration
   # whenever the application is updated.
   @impl true
+  @spec config_change(keyword(), keyword(), [atom()]) :: :ok
   def config_change(changed, _new, removed) do
     BlabberWeb.Endpoint.config_change(changed, removed)
     :ok

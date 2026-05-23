@@ -80,43 +80,48 @@ defmodule BlabberWeb.ChatLive do
   end
 
   @impl Phoenix.LiveView
+  def handle_event("submit_kino_form", %{"prompt" => %{}} = _params, socket),
+    do: {:noreply, socket}
+
   def handle_event("submit_kino_form", %{"prompt" => prompt}, socket) do
-    clean_prompt = String.trim(prompt)
+    case String.trim(prompt) do
+      "" ->
+        {:noreply, socket}
 
-    if clean_prompt != "" do
-      socket = assign(socket, loading: true, prompt: "")
-      parent = self()
+      clean_prompt ->
+        socket = assign(socket, loading: true, prompt: "")
+        parent = self()
 
-      Task.start(fn ->
-        raw_string = Blabber.chat(clean_prompt)
+        Task.start(fn ->
+          raw_string = Blabber.chat(clean_prompt)
+          {label, percent, emoji} = parse_sentiment(raw_string)
 
-        {label, percent, emoji} =
-          cond do
-            String.contains?(raw_string, "POSITIVE") ->
-              {"POSITIVE", extract_percent(raw_string), "😊"}
+          send(
+            parent,
+            {:ai_output, %{prompt: clean_prompt, label: label, percent: percent, emoji: emoji}}
+          )
+        end)
 
-            String.contains?(raw_string, "NEGATIVE") ->
-              {"NEGATIVE", extract_percent(raw_string), "😡"}
-
-            true ->
-              {"NEUTRAL", extract_percent(raw_string), "😐"}
-          end
-
-        send(
-          parent,
-          {:ai_output, %{prompt: clean_prompt, label: label, percent: percent, emoji: emoji}}
-        )
-      end)
-
-      {:noreply, socket}
-    else
-      {:noreply, socket}
+        {:noreply, socket}
     end
   end
 
   @impl Phoenix.LiveView
   def handle_info({:ai_output, payload}, socket) do
     {:noreply, assign(socket, results: [payload | socket.assigns.results], loading: false)}
+  end
+
+  defp parse_sentiment(raw_string) do
+    cond do
+      String.contains?(raw_string, "POSITIVE") ->
+        {"POSITIVE", extract_percent(raw_string), "😊"}
+
+      String.contains?(raw_string, "NEGATIVE") ->
+        {"NEGATIVE", extract_percent(raw_string), "😡"}
+
+      true ->
+        {"NEUTRAL", extract_percent(raw_string), "😐"}
+    end
   end
 
   defp extract_percent(string) do

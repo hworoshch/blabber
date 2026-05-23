@@ -6,12 +6,19 @@ defmodule Blabber.Distilbert do
 
   @default_model {:hf, "lxyuan/distilbert-base-multilingual-cased-sentiments-student"}
 
+  @type prediction :: %{label: String.t(), score: float()}
+  @type serving_result :: %{predictions: [prediction()]}
+
+  @type state :: %{serving: any()}
+
+  @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts \\ []) do
     {name, opts} = opts |> Keyword.put_new(:name, __MODULE__) |> Keyword.pop!(:name)
     GenServer.start_link(__MODULE__, opts, name: name)
   end
 
   @impl GenServer
+  @spec init(keyword()) :: {:ok, state()} | {:stop, any()}
   def init(opts) do
     {model_base, _opts} = Keyword.pop(opts, :model, @default_model)
 
@@ -28,11 +35,13 @@ defmodule Blabber.Distilbert do
   end
 
   @impl GenServer
+  @spec handle_call({:serve, any()}, GenServer.from(), state()) :: {:reply, any(), state()}
   def handle_call({:serve, prompt}, _from, %{serving: serving} = state) do
     {:reply, Nx.Serving.run(serving, prompt), state}
   end
 
   @impl Blabber.ChatCompletion
+  @spec call(any(), keyword()) :: term()
   def call(request, opts) do
     {callback, opts} = Keyword.pop(opts, :callback)
     {name, _opts} = Keyword.pop(opts, :name, __MODULE__)
@@ -46,10 +55,9 @@ defmodule Blabber.Distilbert do
   end
 
   @impl Blabber.ChatCompletion
-  def to_string(%{predictions: [%{label: label, score: score}]}) do
-    "[Sentiment: #{String.upcase(label)} (#{Float.round(score * 100, 1)}%)]"
-  end
+  @spec to_string(any()) :: String.t()
+  def to_string(%{predictions: [%{label: label, score: score}]}),
+    do: "[Sentiment: #{String.upcase(label)} (#{Float.round(score * 100, 1)}%)]"
 
-  @impl Blabber.ChatCompletion
   def to_string(other), do: inspect(other)
 end
